@@ -136,8 +136,7 @@ button:active {
 
 <script>
 
-function sendMessage() {
-
+async function sendMessage() {
     const input = document.getElementById("message");
     const chat = document.getElementById("chat");
 
@@ -153,21 +152,37 @@ function sendMessage() {
 
     input.value = "";
 
-    setTimeout(() => {
+    const betiMessage = document.createElement("div");
+    betiMessage.className = "message beti";
+    betiMessage.innerText = "Beti sedang berpikir...";
+    chat.appendChild(betiMessage);
 
-        const betiMessage = document.createElement("div");
-        betiMessage.className = "message beti";
+    chat.scrollTop = chat.scrollHeight;
 
-        betiMessage.innerHTML =
-            "Saya menerima pesan kamu 👍<br><br>" +
-            "Mesin AI belum disambungkan. " +
-            "Tahap berikutnya kita sambungkan otak AI ke BETI.";
+    try {
+        const response = await fetch("/api/chat", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                message: text
+            })
+        });
 
-        chat.appendChild(betiMessage);
+        const data = await response.json();
 
-        chat.scrollTop = chat.scrollHeight;
+        if (!response.ok) {
+            throw new Error(data.error || "Terjadi kesalahan");
+        }
 
-    }, 500);
+        betiMessage.innerText = data.reply;
+
+    } catch (error) {
+        betiMessage.innerText =
+            "Maaf Bet, terjadi masalah saat menghubungkan ke mesin AI.";
+        console.error(error);
+    }
 
     chat.scrollTop = chat.scrollHeight;
 }
